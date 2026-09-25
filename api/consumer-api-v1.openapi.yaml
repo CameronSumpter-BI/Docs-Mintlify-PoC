@@ -1,0 +1,955 @@
+# Buzz Health Consumer API v1: portal reference (Level 1: Public).
+# Every example value is synthetic except public drug-catalog identifiers. Open questions carry [VERIFY|TBD|APPROVE V-NNN] markers.
+# Keep platform extensions (x-mint, x-fern-*) out of this file; put them in overlays/.
+openapi: 3.1.0
+info:
+  title: Consumer API
+  version: "v1"
+  summary: Real-time prescription pricing across nearby pharmacies.
+  description: |
+    The Consumer API returns prescription prices across pharmacies near a location, for display in your web or mobile app.
+
+    - **Authentication:** request an access token from `POST /oauth2/token`, then send it as a bearer token with every pricing request.
+    - **Pricing:** nine endpoints combine one drug identifier (NDC, drug form strength ID, or drug name ID) with one location method (ZIP code, coordinates, or a list of pharmacies).
+    - **Envelope:** every response shares one envelope. Pricing data sits under `data.price`.
+
+    Call the API from your server, never from a browser, so your credentials stay private.
+  contact:
+    name: Your Buzz Health account team [TBD V-017]
+servers:
+  - url: "{baseUrl}"
+    description: Base URL provided by your account team [TBD V-004]
+    variables:
+      baseUrl:
+        default: https://BUZZ_API_BASE_URL
+        description: Replace with the base URL from your onboarding materials. [TBD V-004]
+security:
+  - bearerAuth: []
+tags:
+  - name: Authentication
+    description: Get an access token for pricing requests.
+  - name: Price by NDC
+    description: Identify the drug by its 11-digit National Drug Code (NDC). The recommended starting point.
+  - name: Price by drug form strength ID
+    description: Identify the drug by a drug form strength ID returned in an earlier pricing response.
+  - name: Price by drug name ID
+    description: Identify the drug by drug name ID. Use only if your integration requires it.
+paths:
+  /oauth2/token:
+    post:
+      tags: [Authentication]
+      operationId: getAccessToken
+      summary: Get an access token
+      description: |
+        Exchange your client ID, user ID, and user secret for a bearer access token. Reuse the token until it expires, then request a new one.
+
+        Send a non-empty `User-Agent` header with every request [VERIFY V-012].
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRequest"
+            example:
+              messageCode: "quickstart-0001"
+              clientID: "YOUR_CLIENT_ID"
+              userId: "YOUR_USER_ID"
+              userSecret: "YOUR_USER_SECRET"
+      responses:
+        "200":
+          description: Token issued.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+              example:
+                statuscode: "200 OK"
+                status: "SUCCESS"
+                method: "POST"
+                timestamp: "2026-01-15 17:30:00"
+                clientName: "ExamplePartner"
+                messageCode: "quickstart-0001"
+                data:
+                  token:
+                    access_token: "<access_token>"
+                    expires_in: 86400
+                    token_type: "Bearer"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /drugprice/byndc/byzipcode:
+    post:
+      tags: ["Price by NDC"]
+      operationId: priceNdcByZipCode
+      summary: Price by NDC, near a ZIP code
+      description: |
+        Returns prices for one drug, identified by NDC, at pharmacies near a ZIP code. See [Pricing a Drug](/consumer-api/pricing-a-drug) to choose an endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PricingRequestBase"
+                - type: object
+                  required: [drugParameters, location]
+                  properties:
+                    drugParameters:
+                      $ref: "#/components/schemas/DrugParametersNdc"
+                    location:
+                      $ref: "#/components/schemas/LocationZipCode"
+            example:
+              messageCode: "quickstart-0002"
+              clientID: "YOUR_CLIENT_ID"
+              options:
+                includeDrugDictionary: true
+                predictiveNDCs: true
+              drugParameters:
+                ndc: "65862035790"
+                quantity: 30
+                bn: "clopidogrel"
+              location:
+                zipCode: "98109"
+                radius: 10
+      responses:
+        "200":
+          $ref: "#/components/responses/PricingSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /drugprice/byndc/bylatlong:
+    post:
+      tags: ["Price by NDC"]
+      operationId: priceNdcByLatLng
+      summary: Price by NDC, near a latitude and longitude
+      description: |
+        Returns prices for one drug, identified by NDC, at pharmacies near a latitude and longitude. See [Pricing a Drug](/consumer-api/pricing-a-drug) to choose an endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PricingRequestBase"
+                - type: object
+                  required: [drugParameters, location]
+                  properties:
+                    drugParameters:
+                      $ref: "#/components/schemas/DrugParametersNdc"
+                    location:
+                      $ref: "#/components/schemas/LocationLatLng"
+            example:
+              messageCode: "quickstart-0002"
+              clientID: "YOUR_CLIENT_ID"
+              options:
+                includeDrugDictionary: true
+                predictiveNDCs: true
+              drugParameters:
+                ndc: "65862035790"
+                quantity: 30
+                bn: "clopidogrel"
+              location:
+                latitude: 47.6205
+                longitude: -122.3493
+                radius: 10
+      responses:
+        "200":
+          $ref: "#/components/responses/PricingSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /drugprice/byndc/bypharmacies:
+    post:
+      tags: ["Price by NDC"]
+      operationId: priceNdcByPharmacies
+      summary: Price by NDC, at specific pharmacies
+      description: |
+        Returns prices for one drug, identified by NDC, at pharmacies at specific pharmacies. See [Pricing a Drug](/consumer-api/pricing-a-drug) to choose an endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PricingRequestBase"
+                - type: object
+                  required: [drugParameters, location]
+                  properties:
+                    drugParameters:
+                      $ref: "#/components/schemas/DrugParametersNdc"
+                    location:
+                      $ref: "#/components/schemas/LocationPharmacies"
+            example:
+              messageCode: "quickstart-0002"
+              clientID: "YOUR_CLIENT_ID"
+              options:
+                includeDrugDictionary: true
+                predictiveNDCs: true
+              drugParameters:
+                ndc: "65862035790"
+                quantity: 30
+                bn: "clopidogrel"
+              location:
+                npis: ["1234567893"]
+      responses:
+        "200":
+          $ref: "#/components/responses/PricingSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /drugprice/bydfsid/byzipcode:
+    post:
+      tags: ["Price by drug form strength ID"]
+      operationId: priceDfsByZipCode
+      summary: Price by drug form strength ID, near a ZIP code
+      description: |
+        Returns prices for one drug, identified by drug form strength ID, at pharmacies near a ZIP code. See [Pricing a Drug](/consumer-api/pricing-a-drug) to choose an endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PricingRequestBase"
+                - type: object
+                  required: [drugParameters, location]
+                  properties:
+                    drugParameters:
+                      $ref: "#/components/schemas/DrugParametersDfs"
+                    location:
+                      $ref: "#/components/schemas/LocationZipCode"
+            example:
+              messageCode: "quickstart-0002"
+              clientID: "YOUR_CLIENT_ID"
+              options:
+                includeDrugDictionary: true
+              drugParameters:
+                drugFormStrengthID: 4701
+                quantity: 30
+                bn: "clopidogrel"
+              location:
+                zipCode: "98109"
+                radius: 10
+      responses:
+        "200":
+          $ref: "#/components/responses/PricingSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /drugprice/bydfsid/bylatlong:
+    post:
+      tags: ["Price by drug form strength ID"]
+      operationId: priceDfsByLatLng
+      summary: Price by drug form strength ID, near a latitude and longitude
+      description: |
+        Returns prices for one drug, identified by drug form strength ID, at pharmacies near a latitude and longitude. See [Pricing a Drug](/consumer-api/pricing-a-drug) to choose an endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PricingRequestBase"
+                - type: object
+                  required: [drugParameters, location]
+                  properties:
+                    drugParameters:
+                      $ref: "#/components/schemas/DrugParametersDfs"
+                    location:
+                      $ref: "#/components/schemas/LocationLatLng"
+            example:
+              messageCode: "quickstart-0002"
+              clientID: "YOUR_CLIENT_ID"
+              options:
+                includeDrugDictionary: true
+              drugParameters:
+                drugFormStrengthID: 4701
+                quantity: 30
+                bn: "clopidogrel"
+              location:
+                latitude: 47.6205
+                longitude: -122.3493
+                radius: 10
+      responses:
+        "200":
+          $ref: "#/components/responses/PricingSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /drugprice/bydfsid/bypharmacies:
+    post:
+      tags: ["Price by drug form strength ID"]
+      operationId: priceDfsByPharmacies
+      summary: Price by drug form strength ID, at specific pharmacies
+      description: |
+        Returns prices for one drug, identified by drug form strength ID, at pharmacies at specific pharmacies. See [Pricing a Drug](/consumer-api/pricing-a-drug) to choose an endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PricingRequestBase"
+                - type: object
+                  required: [drugParameters, location]
+                  properties:
+                    drugParameters:
+                      $ref: "#/components/schemas/DrugParametersDfs"
+                    location:
+                      $ref: "#/components/schemas/LocationPharmacies"
+            example:
+              messageCode: "quickstart-0002"
+              clientID: "YOUR_CLIENT_ID"
+              options:
+                includeDrugDictionary: true
+              drugParameters:
+                drugFormStrengthID: 4701
+                quantity: 30
+                bn: "clopidogrel"
+              location:
+                npis: ["1234567893"]
+      responses:
+        "200":
+          $ref: "#/components/responses/PricingSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /drugprice/bydrugnameid/byzipcode:
+    post:
+      tags: ["Price by drug name ID"]
+      operationId: priceDrugNameIdByZipCode
+      summary: Price by drug name ID, near a ZIP code
+      description: |
+        Returns prices for one drug, identified by drug name ID, at pharmacies near a ZIP code. See [Pricing a Drug](/consumer-api/pricing-a-drug) to choose an endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PricingRequestBase"
+                - type: object
+                  required: [drugParameters, location]
+                  properties:
+                    drugParameters:
+                      $ref: "#/components/schemas/DrugParametersDrugNameId"
+                    location:
+                      $ref: "#/components/schemas/LocationZipCode"
+            example:
+              messageCode: "quickstart-0002"
+              clientID: "YOUR_CLIENT_ID"
+              options:
+                includeDrugDictionary: true
+              drugParameters:
+                drugNameID: 1515
+                bn: "azithromycin"
+              location:
+                zipCode: "98109"
+                radius: 10
+      responses:
+        "200":
+          $ref: "#/components/responses/PricingSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /drugprice/bydrugnameid/bylatlong:
+    post:
+      tags: ["Price by drug name ID"]
+      operationId: priceDrugNameIdByLatLng
+      summary: Price by drug name ID, near a latitude and longitude
+      description: |
+        Returns prices for one drug, identified by drug name ID, at pharmacies near a latitude and longitude. See [Pricing a Drug](/consumer-api/pricing-a-drug) to choose an endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PricingRequestBase"
+                - type: object
+                  required: [drugParameters, location]
+                  properties:
+                    drugParameters:
+                      $ref: "#/components/schemas/DrugParametersDrugNameId"
+                    location:
+                      $ref: "#/components/schemas/LocationLatLng"
+            example:
+              messageCode: "quickstart-0002"
+              clientID: "YOUR_CLIENT_ID"
+              options:
+                includeDrugDictionary: true
+              drugParameters:
+                drugNameID: 1515
+                bn: "azithromycin"
+              location:
+                latitude: 47.6205
+                longitude: -122.3493
+                radius: 10
+      responses:
+        "200":
+          $ref: "#/components/responses/PricingSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /drugprice/bydrugnameid/bypharmacies:
+    post:
+      tags: ["Price by drug name ID"]
+      operationId: priceDrugNameIdByPharmacies
+      summary: Price by drug name ID, at specific pharmacies
+      description: |
+        Returns prices for one drug, identified by drug name ID, at pharmacies at specific pharmacies. See [Pricing a Drug](/consumer-api/pricing-a-drug) to choose an endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PricingRequestBase"
+                - type: object
+                  required: [drugParameters, location]
+                  properties:
+                    drugParameters:
+                      $ref: "#/components/schemas/DrugParametersDrugNameId"
+                    location:
+                      $ref: "#/components/schemas/LocationPharmacies"
+            example:
+              messageCode: "quickstart-0002"
+              clientID: "YOUR_CLIENT_ID"
+              options:
+                includeDrugDictionary: true
+              drugParameters:
+                drugNameID: 1515
+                bn: "azithromycin"
+              location:
+                npis: ["1234567893"]
+      responses:
+        "200":
+          $ref: "#/components/responses/PricingSuccess"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: "The access token from `POST /oauth2/token`, sent as `Authorization: Bearer <access_token>` (RFC 6750)."
+  responses:
+    PricingSuccess:
+      description: Prices found. Numeric values in the response are returned as strings.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PricingResponse"
+          example:
+            statuscode: "200 OK"
+            status: "SUCCESS"
+            method: "POST"
+            timestamp: "2026-01-15 17:30:05"
+            clientName: "ExamplePartner"
+            messageCode: "quickstart-0002"
+            data:
+              price:
+                context:
+                  pricedDrugInfo:
+                    name: "clopidogrel"
+                    isGeneric: true
+                    drugFormStrengthID: "4701"
+                    ndcRepresented: "65862035790"
+                    strength: "75 mg"
+                    form: "Tablet"
+                    quantity: "30"
+                    displayDosage: "75 mg"
+                  options:
+                    includeDrugDictionary: true
+                    predictiveNDCs: true
+                results:
+                  - pharmacyProfile:
+                      identifier:
+                        chainID: "000"
+                        name: "Example Pharmacy"
+                        ncpdpID: "0000000"
+                        npi: "1234567893"
+                      contact:
+                        phoneNumber: "5555550100"
+                      location:
+                        streetAddress: "100 Example Street"
+                        geoLatitude: "47.6210"
+                        geoLongitude: "-122.3500"
+                        distance: "0.5"
+                        distanceUnit: "miles"
+                      hoursOfOperation:
+                        - dayOfWeek: "Monday"
+                          timeOpen: "9:00 AM"
+                          timeClose: "9:00 PM"
+                          isOpen24h: "false"
+                    pharmacyPricing:
+                      daySupply:
+                        - rangeLowerbound: "1"
+                          rangeUpperbound: "99999"
+                          price: "12.00"
+                          specialPriceType: "None"
+                          specialQuantity: "0"
+                          specialPriceDesc: "None"
+                      estimatedRetailPrice: "40.00"
+                      ndcSelected: "65862035790"
+                drugDictionary:
+                  - drugname: "clopidogrel"
+                    drugFormStrengthID: 4701
+                    ndcRepresented: "65862035790"
+                    isGeneric: true
+                    forms:
+                      - form: "Tablet"
+                        drugFormStrengthID: 4701
+                        ndcRepresented: "65862035790"
+                        strengths:
+                          - strength: "75 mg"
+                            drugFormStrengthID: 4701
+                            ndcRepresented: "65862035790"
+                            quantities:
+                              - quantity: 30
+                                displayDosage: "75 mg"
+    BadRequest:
+      description: The request failed validation, for example a missing required field or a value out of range. Fix the request before retrying.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            statuscode: "400 BAD_REQUEST"
+            status: "FAILURE"
+            message: "Invalid Radius range, it should be between 5 and 100 miles (inclusive)."
+            errors: []
+    Unauthorized:
+      description: The access token is missing, invalid, or expired, or the credentials are wrong. Request a new token and retry.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Your client isn't allowed to call this endpoint. Endpoints are enabled for each client individually; contact your account team [TBD V-017].
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: No record or price was found for the drug and location requested, for example when no pharmacy in range has a price.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ServerError:
+      description: An unexpected error. Retry with backoff; if it persists, contact your account team [TBD V-017].
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    Envelope:
+      type: object
+      description: Fields present on every response.
+      properties:
+        statuscode:
+          type: string
+          description: HTTP status code and reason, for example `200 OK`.
+          examples: ["200 OK"]
+        status:
+          type: string
+          enum: [SUCCESS, FAILURE]
+        method:
+          type: string
+          description: HTTP method of the request.
+          examples: ["POST"]
+        timestamp:
+          type: string
+          description: Response time in GMT, formatted `YYYY-MM-DD HH:mm:ss`.
+          examples: ["2026-01-15 17:30:05"]
+        clientName:
+          type: string
+          description: The name of your client configuration.
+        url:
+          type: string
+          description: The path that was called, as recorded by the API (it may include internal routing prefixes).
+        messageCode:
+          type: string
+          description: The `messageCode` you sent, echoed back.
+    ErrorResponse:
+      type: object
+      description: Returned with any 4xx or 5xx status. Match on the HTTP status, not the message text, which may change [VERIFY V-013].
+      properties:
+        statuscode:
+          type: string
+          examples: ["404 NOT_FOUND"]
+        status:
+          type: string
+          enum: [FAILURE]
+        message:
+          type: string
+          description: A human-readable explanation.
+        errors:
+          type: array
+          description: Additional error details, when available [VERIFY V-013].
+          items: {}
+    TokenRequest:
+      type: object
+      required: [messageCode, clientID, userId, userSecret]
+      properties:
+        messageCode:
+          $ref: "#/components/schemas/MessageCode"
+        clientID:
+          type: string
+          description: Your client ID, from your account team.
+        userId:
+          type: string
+          description: Your user ID, from your account team.
+        userSecret:
+          type: string
+          description: Your user secret, from your account team. Keep it on your server.
+          format: password
+    TokenResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                token:
+                  type: object
+                  properties:
+                    access_token:
+                      type: string
+                      description: "Send as `Authorization: Bearer <access_token>`."
+                    expires_in:
+                      type: integer
+                      description: Seconds until the token expires (86400, or 24 hours).
+                      examples: [86400]
+                    token_type:
+                      type: string
+                      examples: ["Bearer"]
+    MessageCode:
+      type: string
+      description: Your identifier for the request, echoed in the response. Use a unique value per request to help trace issues. Up to 30 characters [VERIFY V-028].
+      maxLength: 30
+      examples: ["quickstart-0001"]
+    PricingRequestBase:
+      type: object
+      required: [messageCode, clientID]
+      properties:
+        messageCode:
+          $ref: "#/components/schemas/MessageCode"
+        clientID:
+          type: string
+          description: Your client ID, from your account team.
+        groupNumber:
+          type: string
+          description: Your program's group number, if your account team assigned one.
+        options:
+          $ref: "#/components/schemas/RequestOptions"
+    RequestOptions:
+      type: object
+      properties:
+        includeDrugDictionary:
+          type: boolean
+          description: Set to `true` to include `drugDictionary`, the drug's forms, strengths, and quantities. Send `bn` as well; without it the dictionary may come back empty.
+        predictiveNDCs:
+          type: boolean
+          default: true
+          description: NDC endpoints only. When `true`, the API may price an equivalent NDC at each pharmacy. Compare `ndcSelected` with `ndcRepresented` to see which NDC was priced.
+    DrugParametersCommon:
+      type: object
+      properties:
+        quantityType:
+          type: string
+          enum: [CONSUMER, METRIC]
+          default: CONSUMER
+          description: How `quantity` is expressed.
+        daysSupply:
+          type: integer
+          minimum: 1
+          maximum: 99999
+          description: Days the quantity should last.
+        bn:
+          type: string
+          description: The drug's brand name. Used to build `drugDictionary` alternates [VERIFY V-007].
+          examples: ["clopidogrel"]
+    DrugParametersNdc:
+      allOf:
+        - $ref: "#/components/schemas/DrugParametersCommon"
+        - type: object
+          required: [ndc, quantity]
+          properties:
+            ndc:
+              type: string
+              pattern: "^[0-9]{11}$"
+              description: The 11-digit National Drug Code, without hyphens.
+              examples: ["65862035790"]
+            quantity:
+              $ref: "#/components/schemas/Quantity"
+    DrugParametersDfs:
+      allOf:
+        - $ref: "#/components/schemas/DrugParametersCommon"
+        - type: object
+          required: [drugFormStrengthID, quantity]
+          properties:
+            drugFormStrengthID:
+              type: integer
+              description: A drug form strength ID, as returned in `pricedDrugInfo` or `drugDictionary`.
+              examples: [4701]
+            quantity:
+              $ref: "#/components/schemas/Quantity"
+    DrugParametersDrugNameId:
+      allOf:
+        - $ref: "#/components/schemas/DrugParametersCommon"
+        - type: object
+          required: [drugNameID]
+          properties:
+            drugNameID:
+              type: integer
+              description: A drug name ID. Prefer the NDC endpoints unless your integration requires this one.
+              examples: [1515]
+            quantity:
+              $ref: "#/components/schemas/Quantity"
+    Quantity:
+      type: number
+      minimum: 1
+      description: The quantity to price, in units set by `quantityType`.
+      examples: [30]
+    Radius:
+      type: integer
+      minimum: 5
+      maximum: 100
+      default: 10
+      description: Search radius in miles.
+    LocationZipCode:
+      type: object
+      required: [zipCode]
+      properties:
+        zipCode:
+          type: string
+          pattern: "^[0-9]{5}$"
+          description: A 5-digit US ZIP code. Distance is measured from the ZIP code's geographic center.
+          examples: ["98109"]
+        radius:
+          $ref: "#/components/schemas/Radius"
+    LocationLatLng:
+      type: object
+      required: [latitude, longitude]
+      description: Treat a user's precise location as sensitive data, and handle it according to your privacy policy.
+      properties:
+        latitude:
+          type: number
+          examples: [47.6205]
+        longitude:
+          type: number
+          examples: [-122.3493]
+        radius:
+          $ref: "#/components/schemas/Radius"
+    LocationPharmacies:
+      type: object
+      required: [npis]
+      properties:
+        npis:
+          type: array
+          description: National Provider Identifiers (NPIs) of the pharmacies to price.
+          items:
+            type: string
+            pattern: "^[0-9]{10}$"
+          examples: [["1234567893"]]
+    PricingResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                price:
+                  type: object
+                  properties:
+                    context:
+                      type: object
+                      properties:
+                        pricedDrugInfo:
+                          $ref: "#/components/schemas/PricedDrugInfo"
+                        options:
+                          $ref: "#/components/schemas/RequestOptions"
+                    results:
+                      type: array
+                      description: One entry per pharmacy.
+                      items:
+                        $ref: "#/components/schemas/PharmacyResult"
+                    drugDictionary:
+                      type: array
+                      description: Present when `includeDrugDictionary` is `true` (and `bn` is sent).
+                      items:
+                        $ref: "#/components/schemas/DrugDictionaryEntry"
+    PricedDrugInfo:
+      type: object
+      description: The drug that was priced.
+      properties:
+        name: { type: string }
+        isGeneric: { type: boolean }
+        drugFormStrengthID: { type: string, description: Reuse with the drug form strength ID endpoints. }
+        ndcRepresented: { type: string, description: The NDC that represents the priced drug. }
+        strength: { type: string }
+        form: { type: string }
+        quantity: { type: string }
+        displayDosage: { type: string }
+    PharmacyResult:
+      type: object
+      properties:
+        pharmacyProfile:
+          type: object
+          properties:
+            identifier:
+              type: object
+              properties:
+                chainID: { type: string }
+                name: { type: string }
+                ncpdpID: { type: string, description: The pharmacy's NCPDP identifier. }
+                npi: { type: string, description: The pharmacy's National Provider Identifier. }
+            contact:
+              type: object
+              properties:
+                phoneNumber: { type: string }
+            location:
+              type: object
+              properties:
+                streetAddress: { type: string }
+                geoLatitude: { type: string }
+                geoLongitude: { type: string }
+                distance: { type: string, description: Distance from the search location. }
+                distanceUnit: { type: string }
+            hoursOfOperation:
+              type: array
+              items:
+                type: object
+                properties:
+                  dayOfWeek: { type: string }
+                  timeOpen: { type: string }
+                  timeClose: { type: string }
+                  isOpen24h: { type: string, description: 'The string "true" or "false".' }
+        pharmacyPricing:
+          type: object
+          properties:
+            daySupply:
+              type: array
+              description: Price tiers by days-supply range.
+              items:
+                $ref: "#/components/schemas/DaySupplyTier"
+            estimatedRetailPrice:
+              type: string
+              description: Estimated retail price without the discount, or `"NA"` when unavailable.
+            ndcSelected:
+              type: string
+              description: The NDC priced at this pharmacy. Compare with `ndcRepresented` to detect substitution.
+    DaySupplyTier:
+      type: object
+      properties:
+        rangeLowerbound: { type: string, description: First day of the days-supply range. }
+        rangeUpperbound: { type: string, description: Last day of the days-supply range. }
+        price: { type: string, description: The discounted price for this range. }
+        specialPriceType:
+          type: string
+          enum: [None, Flat, Vaccine]
+        specialQuantity: { type: string }
+        specialPriceDesc: { type: string }
+    DrugDictionaryEntry:
+      type: object
+      description: A drug with its forms, strengths, and quantities.
+      properties:
+        drugname: { type: string }
+        drugFormStrengthID: { type: integer }
+        ndcRepresented: { type: string }
+        isGeneric: { type: boolean }
+        forms:
+          type: array
+          items:
+            type: object
+            properties:
+              form: { type: string }
+              drugFormStrengthID: { type: integer }
+              ndcRepresented: { type: string }
+              strengths:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    strength: { type: string }
+                    drugFormStrengthID: { type: integer }
+                    ndcRepresented: { type: string }
+                    quantities:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          quantity: { type: integer }
+                          displayDosage: { type: string }

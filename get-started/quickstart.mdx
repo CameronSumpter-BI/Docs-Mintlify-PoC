@@ -1,0 +1,204 @@
+---
+title: "Quickstart"
+description: "Get an access token and price your first drug."
+sidebarTitle: "Quickstart"
+icon: "bolt"
+---
+
+In a few minutes you'll get an access token and price a drug at pharmacies near a ZIP code.
+
+## Before you begin
+
+- Your **client ID**, **user ID**, and **user secret** from your Buzz Health account team (see [Getting Access](/get-started/getting-access))
+- The **base URL** for your environment [TBD V-004]
+- `curl`, Node.js 18 or later, or Python 3 with `requests`
+
+Set your values as environment variables, so they stay out of your code:
+
+```bash title="Shell"
+export BUZZ_API_BASE_URL="YOUR_BASE_URL"
+export BUZZ_CLIENT_ID="YOUR_CLIENT_ID"
+export BUZZ_USER_ID="YOUR_USER_ID"
+export BUZZ_USER_SECRET="YOUR_USER_SECRET"
+```
+
+<Steps>
+
+<Step title="Get an access token">
+
+Send your credentials to the token endpoint. `messageCode` is your own identifier for the request.
+
+<CodeGroup>
+
+```bash title="cURL"
+curl -X POST "$BUZZ_API_BASE_URL/oauth2/token" \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: example-app/1.0" \
+  -d '{
+    "messageCode": "quickstart-0001",
+    "clientID": "'"$BUZZ_CLIENT_ID"'",
+    "userId": "'"$BUZZ_USER_ID"'",
+    "userSecret": "'"$BUZZ_USER_SECRET"'"
+  }'
+```
+
+```javascript title="JavaScript"
+const res = await fetch(`${process.env.BUZZ_API_BASE_URL}/oauth2/token`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "User-Agent": "example-app/1.0" },
+  body: JSON.stringify({
+    messageCode: "quickstart-0001",
+    clientID: process.env.BUZZ_CLIENT_ID,
+    userId: process.env.BUZZ_USER_ID,
+    userSecret: process.env.BUZZ_USER_SECRET,
+  }),
+});
+const { data } = await res.json();
+const accessToken = data.token.access_token;
+```
+
+```python title="Python"
+import os, requests
+
+res = requests.post(
+    f"{os.environ['BUZZ_API_BASE_URL']}/oauth2/token",
+    headers={"User-Agent": "example-app/1.0"},
+    json={
+        "messageCode": "quickstart-0001",
+        "clientID": os.environ["BUZZ_CLIENT_ID"],
+        "userId": os.environ["BUZZ_USER_ID"],
+        "userSecret": os.environ["BUZZ_USER_SECRET"],
+    },
+)
+access_token = res.json()["data"]["token"]["access_token"]
+```
+
+</CodeGroup>
+
+The response contains `data.token.access_token`, which is valid for 24 hours (`expires_in`: `86400`).
+
+If you're using the shell, save it for the next step: `export ACCESS_TOKEN="<access_token>"`.
+
+</Step>
+
+<Step title="Price a drug near a ZIP code">
+
+Request prices for 30 tablets of clopidogrel 75 mg (NDC `65862035790`) within 10 miles of ZIP code `98109`. Send the token in the `Authorization` header.
+
+<CodeGroup>
+
+```bash title="cURL"
+curl -X POST "$BUZZ_API_BASE_URL/drugprice/byndc/byzipcode" \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: example-app/1.0" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -d '{
+    "messageCode": "quickstart-0002",
+    "clientID": "'"$BUZZ_CLIENT_ID"'",
+    "drugParameters": { "ndc": "65862035790", "quantity": 30 },
+    "location": { "zipCode": "98109", "radius": 10 }
+  }'
+```
+
+```javascript title="JavaScript"
+const priceRes = await fetch(`${process.env.BUZZ_API_BASE_URL}/drugprice/byndc/byzipcode`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "User-Agent": "example-app/1.0",
+    Authorization: `Bearer ${accessToken}`,
+  },
+  body: JSON.stringify({
+    messageCode: "quickstart-0002",
+    clientID: process.env.BUZZ_CLIENT_ID,
+    drugParameters: { ndc: "65862035790", quantity: 30 },
+    location: { zipCode: "98109", radius: 10 },
+  }),
+});
+const { data: priceData } = await priceRes.json();
+```
+
+```python title="Python"
+price_res = requests.post(
+    f"{os.environ['BUZZ_API_BASE_URL']}/drugprice/byndc/byzipcode",
+    headers={"User-Agent": "example-app/1.0", "Authorization": f"Bearer {access_token}"},
+    json={
+        "messageCode": "quickstart-0002",
+        "clientID": os.environ["BUZZ_CLIENT_ID"],
+        "drugParameters": {"ndc": "65862035790", "quantity": 30},
+        "location": {"zipCode": "98109", "radius": 10},
+    },
+)
+price_data = price_res.json()["data"]
+```
+
+</CodeGroup>
+
+</Step>
+
+<Step title="Read the results">
+
+Pricing sits under `data.price`. Each entry in `results` is one pharmacy. This synthetic example is trimmed to one pharmacy:
+
+```json title="Response (trimmed)"
+{
+  "statuscode": "200 OK",
+  "status": "SUCCESS",
+  "messageCode": "quickstart-0002",
+  "data": {
+    "price": {
+      "context": {
+        "pricedDrugInfo": {
+          "name": "clopidogrel",
+          "drugFormStrengthID": "4701",
+          "strength": "75 mg",
+          "form": "Tablet",
+          "quantity": "30"
+        }
+      },
+      "results": [
+        {
+          "pharmacyProfile": {
+            "identifier": { "name": "Example Pharmacy", "npi": "1234567893" },
+            "location": { "streetAddress": "100 Example Street", "distance": "0.5", "distanceUnit": "miles" }
+          },
+          "pharmacyPricing": {
+            "daySupply": [{ "rangeLowerbound": "1", "rangeUpperbound": "99999", "price": "12.00" }],
+            "estimatedRetailPrice": "40.00"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+Numbers in responses arrive as strings, so convert them before sorting or calculating.
+
+</Step>
+
+</Steps>
+
+<Check>
+
+**You've priced your first drug.** Sort `results` by each pharmacy's `pharmacyPricing.daySupply[].price` to show the lowest price first.
+
+</Check>
+
+## Next steps
+
+<Columns cols={2}>
+
+<Card title="Pricing a drug" icon="tags" href="/consumer-api/pricing-a-drug">
+
+Choose among the nine endpoints and read every field.
+
+</Card>
+
+<Card title="Authentication" icon="key" href="/consumer-api/authentication">
+
+Cache tokens and handle expiry.
+
+</Card>
+
+</Columns>

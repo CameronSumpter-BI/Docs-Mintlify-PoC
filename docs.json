@@ -1,72 +1,60 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "Buzz Health Developer Portal",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#00768D",
+    "light": "#67C1D5",
+    "dark": "#005D6F"
   },
-  "favicon": "/favicon.svg",
-  "navigation": {
-    "pages": [
-      {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
-        ]
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+  "background": {
+    "color": { "light": "#FFFFFF", "dark": "#0A0A0A" }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/assets/logo-light.svg",
+    "dark": "/assets/logo-dark.svg",
+    "href": "https://www.buzzhealth.com"
   },
-  "navbar": {
-    "links": [
+  "favicon": "/assets/favicon.svg",
+  "fonts": {
+    "heading": { "family": "Lato", "weight": 700 },
+    "body": { "family": "Lato", "weight": 400 }
+  },
+  "icons": { "library": "fontawesome" },
+  "navigation": {
+    "tabs": [
       {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "tab": "Documentation",
+        "icon": "book-open",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": ["index", "get-started/introduction", "get-started/quickstart", "get-started/getting-access"]
+          },
+          {
+            "group": "Consumer API",
+            "pages": [
+              "consumer-api/authentication",
+              "consumer-api/making-requests",
+              "consumer-api/pricing-a-drug",
+              "consumer-api/errors",
+              "consumer-api/troubleshooting"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": ["resources/glossary", "resources/changelog"]
+          }
+        ]
+      },
+      {
+        "tab": "API reference",
+        "icon": "code",
+        "openapi": {
+          "source": "/api/consumer-api-v1.openapi.yaml",
+          "directory": "api-reference"
+        }
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
     ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
   }
 }

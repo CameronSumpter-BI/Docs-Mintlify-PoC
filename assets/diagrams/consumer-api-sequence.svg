@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="1160" viewBox="0 0 1200 1160" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="consumer-api-sequence-title consumer-api-sequence-desc">
+      <title id="consumer-api-sequence-title">Pricing a drug with the Consumer API</title>
+      <desc id="consumer-api-sequence-desc">Sequence diagram showing an end user searching for a drug in your app, your server requesting an access token only when it is missing or expired, then calling the pricing endpoint and returning pharmacy prices to the user.</desc>
+      <defs>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap');
+          .title   { font: 400 32px 'Lato', sans-serif; fill: #262626; }
+          .name    { font: 600 20px 'Geist', sans-serif; fill: #262626; }
+          .body    { font: 400 16px 'Geist', sans-serif; fill: #525252; }
+          .eyebrow { font: 500 16px 'Geist Mono', monospace; letter-spacing: 0.08em; fill: #6B6B6B; }
+          .aside   { font: italic 400 20px 'Lato', sans-serif; fill: #262626; }
+          .mono    { font-family: 'Geist Mono', monospace; }
+          .m       { fill: #f5f5f5; }
+          .c-link  { fill: #00768D; }
+          .c-acc   { fill: #946500; }
+        </style>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#525252"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#C98A00"/></marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#00768D"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- Title -->
+      <text class="title" x="40" y="56">Pricing a drug with the Consumer API</text>
+
+      <!-- =================================================================
+           LIFELINES — user 112 · app 300 · server 500 · token 712 · pricing 996
+           ================================================================= -->
+      <g stroke="rgba(38,38,38,0.22)" stroke-width="1" stroke-dasharray="3,3">
+        <line x1="112" y1="200" x2="112" y2="1016"/>
+        <line x1="300" y1="200" x2="300" y2="1016"/>
+        <line x1="500" y1="200" x2="500" y2="1016"/>
+        <line x1="712" y1="200" x2="712" y2="1016"/>
+        <line x1="996" y1="200" x2="996" y2="1016"/>
+      </g>
+
+      <!-- =================================================================
+           OPT FRAGMENT — spans server + token, around messages 3–4
+           ================================================================= -->
+      <rect x="420" y="368" width="384" height="200" rx="4" fill="none" stroke="rgba(38,38,38,0.22)" stroke-width="1"/>
+      <rect x="420" y="368" width="56" height="24" rx="2" fill="#f5f5f5" stroke="rgba(38,38,38,0.22)" stroke-width="1"/>
+      <text class="eyebrow" x="448" y="386" text-anchor="middle" style="fill:#525252">OPT</text>
+      <!-- Guard sits between the server and token lifelines so it never crosses either -->
+      <text class="body mono" x="520" y="392"><tspan x="520">[Token missing or</tspan><tspan x="520" dy="20">expired (401)]</tspan></text>
+
+      <!-- =================================================================
+           ACTIVATION BARS
+           ================================================================= -->
+      <g fill="rgba(38,38,38,0.06)" stroke="#525252" stroke-width="0.8">
+        <rect x="296" y="264" width="8" height="720"/>
+        <rect x="496" y="336" width="8" height="584"/>
+        <rect x="708" y="488" width="8" height="56"/>
+        <rect x="992" y="756" width="8" height="128"/>
+      </g>
+
+      <!-- =================================================================
+           MESSAGES — arrows first, labels (mask + text) after
+           ================================================================= -->
+      <!-- 1 · End user → Your app -->
+      <line x1="112" y1="264" x2="296" y2="264" stroke="#525252" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <g>
+        <rect class="m" x="136" y="204" width="140" height="52" rx="2"/>
+        <text class="body" x="206" y="226" text-anchor="middle"><tspan x="206">Search for a drug</tspan><tspan x="206" dy="20">near a ZIP code</tspan></text>
+      </g>
+
+      <!-- 2 · Your app → Your server -->
+      <line x1="304" y1="336" x2="496" y2="336" stroke="#525252" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <g>
+        <rect class="m" x="316" y="276" width="168" height="52" rx="2"/>
+        <text class="body" x="400" y="298" text-anchor="middle"><tspan x="400">Drug (NDC), quantity,</tspan><tspan x="400" dy="20">ZIP code</tspan></text>
+      </g>
+
+      <!-- 3 · Your server → token endpoint (API call) -->
+      <line x1="504" y1="488" x2="708" y2="488" stroke="#00768D" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <g>
+        <rect class="m" x="536" y="428" width="140" height="52" rx="2"/>
+        <text class="body c-link" x="606" y="450" text-anchor="middle"><tspan x="606">Client ID, user ID,</tspan><tspan x="606" dy="20">user secret</tspan></text>
+      </g>
+
+      <!-- 4 · token endpoint → Your server (return) -->
+      <line x1="708" y1="544" x2="504" y2="544" stroke="#525252" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <g>
+        <rect class="m" x="548" y="504" width="116" height="32" rx="2"/>
+        <text class="body" x="606" y="526" text-anchor="middle">Access token</text>
+      </g>
+
+      <!-- 6 · Your server → pricing endpoint (API call); label sits in the token→pricing gap -->
+      <line x1="504" y1="756" x2="992" y2="756" stroke="#00768D" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <g>
+        <rect class="m" x="740" y="656" width="228" height="92" rx="2"/>
+        <text class="body c-link" x="854" y="678" text-anchor="middle"><tspan x="854" class="mono">Authorization: Bearer</tspan><tspan x="854" dy="20"><tspan class="mono">&lt;access token&gt;</tspan>, plus NDC,</tspan><tspan x="854" dy="20">quantity, days supply,</tspan><tspan x="854" dy="20">ZIP code, radius</tspan></text>
+      </g>
+
+      <!-- 7 · pricing endpoint → Your server (headline return) -->
+      <line x1="992" y1="884" x2="504" y2="884" stroke="#C98A00" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow-accent)"/>
+      <g>
+        <rect class="m" x="744" y="764" width="220" height="112" rx="2"/>
+        <text class="body c-acc" x="854" y="786" text-anchor="middle"><tspan x="854">Envelope:</tspan><tspan x="854" dy="20" class="mono">statuscode, status,</tspan><tspan x="854" dy="20" class="mono">data.price → context,</tspan><tspan x="854" dy="20"><tspan class="mono">results</tspan> (one entry per</tspan><tspan x="854" dy="20">pharmacy, with pricing)</tspan></text>
+      </g>
+
+      <!-- 8 · Your server → Your app (return) -->
+      <line x1="496" y1="920" x2="304" y2="920" stroke="#525252" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <g>
+        <rect class="m" x="308" y="880" width="184" height="32" rx="2"/>
+        <text class="body" x="400" y="902" text-anchor="middle">Pharmacies and prices</text>
+      </g>
+
+      <!-- 9 · Your app → End user (return) -->
+      <line x1="296" y1="984" x2="112" y2="984" stroke="#525252" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <g>
+        <rect class="m" x="128" y="924" width="156" height="52" rx="2"/>
+        <text class="body" x="206" y="946" text-anchor="middle"><tspan x="206">Compare prices at</tspan><tspan x="206" dy="20">nearby pharmacies</tspan></text>
+      </g>
+
+      <!-- 5 · Note over Your server (drawn over its lifeline and activation bar) -->
+      <path d="M376,584 H612 L624,596 V648 H376 Z" fill="#ffffff" stroke="rgba(38,38,38,0.30)" stroke-width="1"/>
+      <path d="M612,584 V596 H624" fill="none" stroke="rgba(38,38,38,0.30)" stroke-width="1"/>
+      <text class="body" x="500" y="610" text-anchor="middle" style="fill:#262626"><tspan x="500">Cache the token and reuse</tspan><tspan x="500" dy="20">it until it expires</tspan></text>
+
+      <!-- =================================================================
+           ACTOR BOXES — drawn after arrows
+           ================================================================= -->
+      <!-- End user (input) -->
+      <rect x="40" y="96" width="144" height="104" rx="6" fill="#f5f5f5"/>
+      <rect x="40" y="96" width="144" height="104" rx="6" fill="rgba(82,82,82,0.10)" stroke="#6B6B6B" stroke-width="1"/>
+      <text class="name" x="112" y="156" text-anchor="middle">End user</text>
+
+      <!-- Your app (backend-style step) -->
+      <rect x="212" y="96" width="176" height="104" rx="6" fill="#ffffff" stroke="#262626" stroke-width="1"/>
+      <text class="eyebrow" x="300" y="128" text-anchor="middle">YOUR PLATFORM</text>
+      <text class="name" x="300" y="160" text-anchor="middle">Your app</text>
+      <text class="body" x="300" y="184" text-anchor="middle">Front end</text>
+
+      <!-- Your server (focal) -->
+      <rect x="412" y="96" width="176" height="104" rx="6" fill="#f5f5f5"/>
+      <rect x="412" y="96" width="176" height="104" rx="6" fill="rgba(255,182,0,0.12)" stroke="#C98A00" stroke-width="1.2"/>
+      <text class="eyebrow" x="500" y="128" text-anchor="middle" style="fill:#946500">YOUR PLATFORM</text>
+      <text class="name" x="500" y="160" text-anchor="middle">Your server</text>
+      <text class="body" x="500" y="184" text-anchor="middle">Back end</text>
+
+      <!-- Token endpoint (external) -->
+      <rect x="612" y="96" width="200" height="104" rx="6" fill="#f5f5f5"/>
+      <rect x="612" y="96" width="200" height="104" rx="6" fill="rgba(38,38,38,0.03)" stroke="rgba(38,38,38,0.30)" stroke-width="1"/>
+      <text class="eyebrow" x="712" y="128" text-anchor="middle">CONSUMER API</text>
+      <text class="name" x="712" y="160" text-anchor="middle">Token endpoint</text>
+      <text class="body mono c-link" x="712" y="184" text-anchor="middle">POST /oauth2/token</text>
+
+      <!-- Pricing endpoint (external) -->
+      <rect x="832" y="96" width="328" height="104" rx="6" fill="#f5f5f5"/>
+      <rect x="832" y="96" width="328" height="104" rx="6" fill="rgba(38,38,38,0.03)" stroke="rgba(38,38,38,0.30)" stroke-width="1"/>
+      <text class="eyebrow" x="996" y="128" text-anchor="middle">CONSUMER API</text>
+      <text class="name" x="996" y="160" text-anchor="middle">Pricing endpoint</text>
+      <text class="body mono c-link" x="996" y="184" text-anchor="middle">POST /drugprice/byndc/byzipcode</text>
+
+      <!-- Footnote -->
+      <text class="aside" x="40" y="1064">Call the API from your server so credentials never reach the browser.</text>
+
+      <!-- =================================================================
+           LEGEND
+           ================================================================= -->
+      <line x1="40" y1="1096" x2="1160" y2="1096" stroke="rgba(38,38,38,0.10)" stroke-width="0.8"/>
+      <text class="eyebrow" x="40" y="1136">LEGEND</text>
+
+      <line x1="156" y1="1130" x2="192" y2="1130" stroke="#00768D" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <text class="body" x="204" y="1136">Call to the Consumer API</text>
+
+      <line x1="440" y1="1130" x2="476" y2="1130" stroke="#525252" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <text class="body" x="488" y="1136">Call within your platform</text>
+
+      <line x1="728" y1="1130" x2="764" y2="1130" stroke="#525252" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <text class="body" x="776" y="1136">Return</text>
+
+      <line x1="872" y1="1130" x2="908" y2="1130" stroke="#C98A00" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow-accent)"/>
+      <text class="body" x="920" y="1136">Pricing response</text>
+    </svg>

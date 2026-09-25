@@ -1,0 +1,92 @@
+---
+title: "Pricing a Drug"
+description: "Choose how to identify the drug and the pharmacies, then read the pricing results."
+sidebarTitle: "Pricing a drug"
+icon: "tags"
+---
+
+Each pricing endpoint combines one way to identify the drug with one way to find pharmacies. Pick one of each, and the path is `/drugprice/{identifier}/{location}`.
+
+<Frame caption="Pick one drug identifier and one location method.">
+
+![Flowchart: choose how to identify the drug (NDC, recommended; drug form strength ID; or drug name ID), then how to find pharmacies (ZIP code, coordinates, or specific pharmacies). The result is a POST to /drugprice/ followed by the identifier and the location.](/assets/diagrams/choose-an-endpoint.svg)
+
+</Frame>
+
+## Choose a drug identifier
+
+| Identifier | Path segment | Fields in `drugParameters` | Use when |
+|---|---|---|---|
+| NDC | `byndc` | `ndc` (11 digits, no hyphens), `quantity` | You know the product's National Drug Code. **Start here.** |
+| Drug form strength ID | `bydfsid` | `drugFormStrengthID`, `quantity` | You have an ID from an earlier response, for example after the user changes strength or quantity |
+| Drug name ID | `bydrugnameid` | `drugNameID` | Your integration requires it. Prefer the NDC endpoints otherwise. |
+
+Every identifier also accepts:
+
+| Field | Description |
+|---|---|
+| `quantityType` | `CONSUMER` (default) or `METRIC` |
+| `daysSupply` | Days the quantity should last, from 1 to 99999 |
+| `bn` | The drug's brand name. Send it when you request the drug dictionary [VERIFY V-007]. |
+
+## Choose a location
+
+| Location | Path segment | Fields in `location` |
+|---|---|---|
+| ZIP code | `byzipcode` | `zipCode` (5 digits, as a string), `radius` |
+| Coordinates | `bylatlong` | `latitude`, `longitude`, `radius` |
+| Specific pharmacies | `bypharmacies` | `npis`: a list of pharmacy National Provider Identifiers (NPIs) |
+
+- `radius` is in miles, from 5 to 100, and defaults to 10.
+- ZIP code searches measure distance from the ZIP code's geographic center.
+
+<Warning>
+
+**A user's precise location is sensitive data.** If you send coordinates, handle them according to your privacy policy, and don't keep them longer than you need to.
+
+</Warning>
+
+## Example request
+
+This request prices clopidogrel 75 mg by NDC near a ZIP code, and asks for the drug dictionary:
+
+```json title="POST /drugprice/byndc/byzipcode"
+{
+  "messageCode": "pricing-0001",
+  "clientID": "YOUR_CLIENT_ID",
+  "options": { "includeDrugDictionary": true, "predictiveNDCs": true },
+  "drugParameters": { "ndc": "65862035790", "quantity": 30, "bn": "clopidogrel" },
+  "location": { "zipCode": "98109", "radius": 10 }
+}
+```
+
+## Read the results
+
+Pricing data sits under `data.price`:
+
+| Field | Description |
+|---|---|
+| `context.pricedDrugInfo` | The drug that was priced: `name`, `form`, `strength`, `quantity`, `isGeneric`, `ndcRepresented`, and `drugFormStrengthID` |
+| `results[]` | One entry per pharmacy |
+| `results[].pharmacyProfile` | The pharmacy's `identifier` (name, NPI, NCPDP ID), `contact`, `location` (address, coordinates, distance), and `hoursOfOperation` |
+| `results[].pharmacyPricing.daySupply[]` | Price tiers. Each has a days-supply range (`rangeLowerbound` to `rangeUpperbound`), a `price`, and a `specialPriceType` (`None`, `Flat`, or `Vaccine`). |
+| `results[].pharmacyPricing.estimatedRetailPrice` | The estimated retail price, or `"NA"` when it isn't available |
+| `results[].pharmacyPricing.ndcSelected` | The NDC priced at this pharmacy |
+| `drugDictionary[]` | When requested: the drug's forms, strengths, and common quantities, each with a `drugFormStrengthID` |
+
+Response values are strings, so parse `price` and `distance` before sorting.
+
+<Tip>
+
+**Let users change the dose without starting over.** Use a `drugFormStrengthID` from `drugDictionary` or `pricedDrugInfo` with the `bydfsid` endpoints when the user picks a different form, strength, or quantity.
+
+</Tip>
+
+## Equivalent NDCs
+
+When `predictiveNDCs` is `true` (the default for NDC endpoints), a pharmacy may be priced for an equivalent NDC. Compare `ndcSelected` with `ndcRepresented` to see whether that happened.
+
+## Related
+
+- [API reference](/api-reference/price-by-ndc/price-by-ndc-near-a-zip-code): every field for all nine pricing endpoints
+- [Troubleshooting](/consumer-api/troubleshooting): empty results and other surprises

@@ -1,0 +1,60 @@
+---
+title: "Troubleshooting"
+description: "Common Consumer API integration issues and how to resolve them."
+sidebarTitle: "Troubleshooting"
+icon: "screwdriver-wrench"
+---
+
+Solutions to the issues integrators run into most often. For the error format and status codes, see [Errors](/consumer-api/errors).
+
+<AccordionGroup>
+
+<Accordion title="The drug dictionary comes back empty">
+
+Send the drug's brand name in `drugParameters.bn` along with `"includeDrugDictionary": true`. Without `bn`, the dictionary may be empty for many drugs [VERIFY V-007].
+
+</Accordion>
+
+<Accordion title="I get a 404 for a drug I know exists">
+
+A `404` can mean that no pharmacy within your search area has a price for that drug and quantity. Try a larger `radius` (up to 100 miles), a different location, or a common quantity from the drug dictionary. If you priced by NDC, confirm it's 11 digits without hyphens.
+
+</Accordion>
+
+<Accordion title="A pharmacy was priced for a different NDC">
+
+With `predictiveNDCs` on (the default), a pharmacy may be priced for an equivalent NDC. Compare `ndcSelected` in each result with `ndcRepresented` in `pricedDrugInfo`. Set `predictiveNDCs` to `false` to price only the NDC you sent [VERIFY V-035].
+
+</Accordion>
+
+<Accordion title="Requests return 401 after working for a while">
+
+Access tokens expire after 24 hours. Cache the token with its expiry time, request a new one shortly before it expires, and retry once after any `401`.
+
+</Accordion>
+
+<Accordion title="One endpoint returns 403 while others work">
+
+Endpoints are enabled for each client individually. Ask your account team to enable the endpoint for your client [TBD V-017].
+
+</Accordion>
+
+<Accordion title="Browser requests fail with a CORS error">
+
+The Consumer API is built for server-to-server calls. Send requests from your server and pass the results to your app. This also keeps your credentials out of the browser.
+
+</Accordion>
+
+<Accordion title="Results include fewer pharmacies than expected">
+
+Results reflect your program's pharmacy network configuration and the search radius. Widen the `radius`, or ask your account team about your configuration.
+
+</Accordion>
+
+<Accordion title="Sorting by price gives odd results">
+
+Prices and other numbers are returned as strings. Convert `price` to a number before sorting, or `"100.00"` will sort before `"20.00"`.
+
+</Accordion>
+
+</AccordionGroup>

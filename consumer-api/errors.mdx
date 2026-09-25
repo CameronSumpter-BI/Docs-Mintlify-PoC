@@ -1,0 +1,54 @@
+---
+title: "Errors"
+description: "How the Consumer API reports errors, and what each status means."
+sidebarTitle: "Errors"
+icon: "triangle-exclamation"
+---
+
+The Consumer API uses standard HTTP status codes and returns every error in the same envelope.
+
+## Error format
+
+```json title="Error response"
+{
+  "statuscode": "400 BAD_REQUEST",
+  "status": "FAILURE",
+  "message": "Invalid Radius range, it should be between 5 and 100 miles (inclusive).",
+  "errors": []
+}
+```
+
+| Field | Description |
+|---|---|
+| `statuscode` | HTTP status and reason |
+| `status` | Always `FAILURE` for errors |
+| `message` | A human-readable explanation |
+| `errors` | Additional details, when available [VERIFY V-013] |
+
+Handle errors by HTTP status, not by `message` text, which may change [VERIFY V-013].
+
+## Status codes
+
+| Status | Meaning | What to do |
+|---|---|---|
+| `400` | The request failed validation: a missing field, a wrong format, or a value out of range | Fix the request; don't retry it unchanged |
+| `401` | The credentials or access token are invalid, or the token has expired | Request a new token and retry once |
+| `403` | Your client isn't allowed to call this endpoint | Ask your account team to enable it [TBD V-017] |
+| `404` | No record was found for the drug, or no pharmacy in range has a price | Check the identifier, or widen the search |
+| `405` | The HTTP method isn't allowed | Use `POST` |
+| `415` | The content type isn't supported | Send `Content-Type: application/json` |
+| `500` | An unexpected error | Retry with exponential backoff. If it persists, contact your account team [TBD V-017]. |
+
+## Validation rules
+
+| Field | Rule |
+|---|---|
+| `messageCode` | Required; up to 30 characters [VERIFY V-028] |
+| `clientID` | Required |
+| `ndc` | 11 digits |
+| `quantity` | A number, 1 or more; required to price by NDC or drug form strength ID |
+| `daysSupply` | 1 to 99999 |
+| `zipCode` | 5 digits |
+| `radius` | 5 to 100 miles |
+| `latitude`, `longitude` | Both required for `bylatlong` |
+| `npis` | Required for `bypharmacies` |

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="1216" viewBox="0 0 1200 1216" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="choose-an-endpoint-title choose-an-endpoint-desc">
+      <title id="choose-an-endpoint-title">Choosing a Consumer API pricing endpoint</title>
+      <desc id="choose-an-endpoint-desc">Flowchart showing how to pick one of nine pricing endpoints: first choose how the drug is identified (NDC, drug form strength ID, or drug name ID), then how to find pharmacies (ZIP code, latitude and longitude, or a list of NPIs), which together form POST /drugprice/{identifier}/{location}.</desc>
+      <defs>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap');
+          .title   { font: 400 32px 'Lato', sans-serif; fill: #262626; }
+          .name    { font: 600 20px 'Geist', sans-serif; fill: #262626; }
+          .body    { font: 400 16px 'Geist', sans-serif; fill: #525252; }
+          .eyebrow { font: 500 16px 'Geist Mono', monospace; letter-spacing: 0.08em; fill: #6B6B6B; }
+          .code    { font: 600 20px 'Geist Mono', monospace; fill: #262626; }
+          .key     { font: 400 16px 'Geist Mono', monospace; fill: #6B6B6B; }
+          .aside   { font: italic 400 20px 'Lato', sans-serif; fill: #262626; }
+          .mono    { font-family: 'Geist Mono', monospace; }
+          .m       { fill: #f5f5f5; }
+        </style>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#525252"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#C98A00"/></marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#00768D"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- Title + framing sentence -->
+      <text class="title" x="40" y="56">Choosing a Consumer API pricing endpoint</text>
+      <text class="body" x="40" y="88">The nine pricing endpoints combine one drug identifier with one location method.</text>
+
+      <!-- Stage eyebrows -->
+      <text class="eyebrow" x="40" y="176">STAGE 1</text>
+      <text class="eyebrow" x="40" y="640">STAGE 2</text>
+
+      <!-- =================================================================
+           CONNECTORS — drawn before nodes
+           ================================================================= -->
+      <!-- Stage 1 exits: left (recommended, coral) · bottom · right -->
+      <path d="M376,216 H216 Q208,216 208,224 V344" fill="none" stroke="#C98A00" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+      <line x1="600" y1="296" x2="600" y2="344" stroke="#525252" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <path d="M824,216 H984 Q992,216 992,224 V344" fill="none" stroke="#525252" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <g>
+        <rect class="m" x="216" y="256" width="168" height="48" rx="2"/>
+        <text class="eyebrow" x="224" y="276" style="fill:#946500"><tspan x="224">RECOMMENDED</tspan><tspan x="224" dy="20">STARTING POINT</tspan></text>
+      </g>
+
+      <!-- Merge 1: three identifiers rejoin before stage 2 -->
+      <path d="M208,504 V552 Q208,560 216,560 H596" fill="none" stroke="#525252" stroke-width="1.2"/>
+      <line x1="600" y1="504" x2="600" y2="556" stroke="#525252" stroke-width="1.2"/>
+      <path d="M992,504 V552 Q992,560 984,560 H604" fill="none" stroke="#525252" stroke-width="1.2"/>
+      <line x1="600" y1="564" x2="600" y2="600" stroke="#525252" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Stage 2 exits -->
+      <path d="M376,680 H216 Q208,680 208,688 V808" fill="none" stroke="#525252" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="600" y1="760" x2="600" y2="808" stroke="#525252" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <path d="M824,680 H984 Q992,680 992,688 V808" fill="none" stroke="#525252" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Merge 2: three locations rejoin at the result -->
+      <path d="M208,968 V1016 Q208,1024 216,1024 H596" fill="none" stroke="#525252" stroke-width="1.2"/>
+      <line x1="600" y1="968" x2="600" y2="1020" stroke="#525252" stroke-width="1.2"/>
+      <path d="M992,968 V1016 Q992,1024 984,1024 H604" fill="none" stroke="#525252" stroke-width="1.2"/>
+      <line x1="600" y1="1028" x2="600" y2="1064" stroke="#525252" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Merge dots -->
+      <circle cx="600" cy="560" r="4" fill="#262626"/>
+      <circle cx="600" cy="1024" r="4" fill="#262626"/>
+
+      <!-- =================================================================
+           STAGE 1 — What identifies the drug?
+           ================================================================= -->
+      <polygon points="600,136 824,216 600,296 376,216" fill="#ffffff" stroke="#262626" stroke-width="1"/>
+      <text class="name" x="600" y="208" text-anchor="middle"><tspan x="600">What identifies</tspan><tspan x="600" dy="24">the drug?</tspan></text>
+
+      <!-- Side note beside stage 1 -->
+      <text class="aside" x="1160" y="148" text-anchor="end"><tspan x="1160">Pricing responses return drug</tspan><tspan x="1160" dy="24">form strength IDs you can</tspan><tspan x="1160" dy="24">reuse in later requests.</tspan></text>
+
+      <!-- Identifier options -->
+      <!-- byndc (focal: recommended) -->
+      <rect x="40" y="344" width="336" height="160" rx="6" fill="#f5f5f5"/>
+      <rect x="40" y="344" width="336" height="160" rx="6" fill="rgba(255,182,0,0.12)" stroke="#C98A00" stroke-width="1.2"/>
+      <text class="name" x="208" y="384" text-anchor="middle">An NDC</text>
+      <text class="body" x="208" y="412" text-anchor="middle">National Drug Code</text>
+      <line x1="64" y1="452" x2="352" y2="452" stroke="rgba(201,138,0,0.30)" stroke-width="0.8"/>
+      <text x="208" y="484" text-anchor="middle"><tspan class="key">identifier = </tspan><tspan class="code" style="fill:#946500">byndc</tspan></text>
+
+      <!-- bydfsid -->
+      <rect x="432" y="344" width="336" height="160" rx="6" fill="#ffffff" stroke="#262626" stroke-width="1"/>
+      <text class="name" x="600" y="384" text-anchor="middle">A drug form strength ID</text>
+      <text class="body" x="600" y="412" text-anchor="middle"><tspan x="600">Returned by an earlier</tspan><tspan x="600" dy="20">pricing response</tspan></text>
+      <line x1="456" y1="452" x2="744" y2="452" stroke="rgba(38,38,38,0.12)" stroke-width="0.8"/>
+      <text x="600" y="484" text-anchor="middle"><tspan class="key">identifier = </tspan><tspan class="code">bydfsid</tspan></text>
+
+      <!-- bydrugnameid -->
+      <rect x="824" y="344" width="336" height="160" rx="6" fill="#ffffff" stroke="#262626" stroke-width="1"/>
+      <text class="name" x="992" y="384" text-anchor="middle">A drug name ID</text>
+      <text class="body" x="992" y="412" text-anchor="middle"><tspan x="992">Only if your integration</tspan><tspan x="992" dy="20">requires it</tspan></text>
+      <line x1="848" y1="452" x2="1136" y2="452" stroke="rgba(38,38,38,0.12)" stroke-width="0.8"/>
+      <text x="992" y="484" text-anchor="middle"><tspan class="key">identifier = </tspan><tspan class="code">bydrugnameid</tspan></text>
+
+      <!-- =================================================================
+           STAGE 2 — How do you want to find pharmacies?
+           ================================================================= -->
+      <polygon points="600,600 824,680 600,760 376,680" fill="#ffffff" stroke="#262626" stroke-width="1"/>
+      <text class="name" x="600" y="672" text-anchor="middle"><tspan x="600">How do you want to</tspan><tspan x="600" dy="24">find pharmacies?</tspan></text>
+
+      <!-- Location options -->
+      <rect x="40" y="808" width="336" height="160" rx="6" fill="#ffffff" stroke="#262626" stroke-width="1"/>
+      <text class="name" x="208" y="848" text-anchor="middle">Near a ZIP code</text>
+      <text class="body" x="208" y="876" text-anchor="middle">Within a radius</text>
+      <line x1="64" y1="916" x2="352" y2="916" stroke="rgba(38,38,38,0.12)" stroke-width="0.8"/>
+      <text x="208" y="948" text-anchor="middle"><tspan class="key">location = </tspan><tspan class="code">byzipcode</tspan></text>
+
+      <rect x="432" y="808" width="336" height="160" rx="6" fill="#ffffff" stroke="#262626" stroke-width="1"/>
+      <text class="name" x="600" y="848" text-anchor="middle">Near a latitude and longitude</text>
+      <text class="body" x="600" y="876" text-anchor="middle">Within a radius</text>
+      <line x1="456" y1="916" x2="744" y2="916" stroke="rgba(38,38,38,0.12)" stroke-width="0.8"/>
+      <text x="600" y="948" text-anchor="middle"><tspan class="key">location = </tspan><tspan class="code">bylatlong</tspan></text>
+
+      <rect x="824" y="808" width="336" height="160" rx="6" fill="#ffffff" stroke="#262626" stroke-width="1"/>
+      <text class="name" x="992" y="848" text-anchor="middle">At specific pharmacies</text>
+      <text class="body" x="992" y="876" text-anchor="middle">A list of NPIs</text>
+      <line x1="848" y1="916" x2="1136" y2="916" stroke="rgba(38,38,38,0.12)" stroke-width="0.8"/>
+      <text x="992" y="948" text-anchor="middle"><tspan class="key">location = </tspan><tspan class="code">bypharmacies</tspan></text>
+
+      <!-- =================================================================
+           RESULT
+           ================================================================= -->
+      <rect x="320" y="1064" width="560" height="112" rx="8" fill="#ffffff" stroke="#262626" stroke-width="1.2"/>
+      <text class="eyebrow" x="600" y="1096" text-anchor="middle">YOUR ENDPOINT</text>
+      <text class="code" x="600" y="1132" text-anchor="middle">POST /drugprice/{identifier}/{location}</text>
+      <text class="body" x="600" y="1160" text-anchor="middle">e.g. <tspan class="mono">/drugprice/byndc/byzipcode</tspan></text>
+    </svg>

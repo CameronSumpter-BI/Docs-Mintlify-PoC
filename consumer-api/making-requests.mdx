@@ -1,0 +1,65 @@
+---
+title: "Making Requests"
+description: "Base URL, required headers, and the request and response envelope shared by every endpoint."
+sidebarTitle: "Making requests"
+icon: "arrow-right-arrow-left"
+---
+
+Every Consumer API request is a JSON `POST` over HTTPS, and every response uses the same envelope. The nine pricing endpoints also share one request shape.
+
+## Base URL
+
+Your account team gives you a base URL for each environment [TBD V-004]. The endpoint paths in this documentation are relative to it:
+
+| Endpoint | Path |
+|---|---|
+| Token | `/oauth2/token` |
+| Pricing | `/drugprice/{identifier}/{location}` |
+
+Paths are lowercase.
+
+## Headers
+
+| Header | Value | Required |
+|---|---|---|
+| `Content-Type` | `application/json` | Yes |
+| `Authorization` | `Bearer <access_token>` | Yes, except for the token endpoint |
+| `User-Agent` | Your application's name and version | Yes, non-empty [VERIFY V-012] |
+
+## Request body
+
+Pricing requests share these top-level fields:
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `messageCode` | string | Yes | Your identifier for the request, echoed in the response. Use a unique value per request to make tracing easier. Up to 30 characters [VERIFY V-028]. |
+| `clientID` | string | Yes | Your client ID |
+| `groupNumber` | string | No | Your program's group number, if your account team assigned one |
+| `options` | object | No | `includeDrugDictionary` and, for NDC endpoints, `predictiveNDCs` |
+| `drugParameters` | object | Yes | The drug, quantity, and days supply. Depends on the endpoint. |
+| `location` | object | Yes | Where to look. Depends on the endpoint. |
+
+[Pricing a Drug](/consumer-api/pricing-a-drug) covers `drugParameters` and `location` for each endpoint.
+
+## Response envelope
+
+Every response, success or failure, includes these fields:
+
+| Field | Description |
+|---|---|
+| `statuscode` | HTTP status and reason, for example `200 OK` |
+| `status` | `SUCCESS` or `FAILURE` |
+| `method` | The HTTP method of your request |
+| `timestamp` | Response time in GMT, formatted `YYYY-MM-DD HH:mm:ss` |
+| `clientName` | The name of your client configuration |
+| `url` | The path that was called |
+| `messageCode` | Your `messageCode`, echoed back |
+| `data` | The result: `data.token` for the token endpoint, `data.price` for pricing |
+
+Failures replace `data` with `message` and `errors`; see [Errors](/consumer-api/errors).
+
+<Note>
+
+**Numbers arrive as strings.** Values such as `price`, `quantity`, and `distance` are JSON strings in responses. Parse them before sorting or doing arithmetic.
+
+</Note>

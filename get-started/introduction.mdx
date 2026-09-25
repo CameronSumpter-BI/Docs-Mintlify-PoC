@@ -1,0 +1,57 @@
+---
+title: "Introduction"
+description: "What the Consumer API does, who it's for, and how an integration fits together."
+sidebarTitle: "Introduction"
+icon: "book-open"
+---
+
+The Consumer API gives your application prescription prices for one drug across the pharmacies near a location. You send the drug, a quantity, and where to look, and the API returns each pharmacy with its price.
+
+## What you can build
+
+The Consumer API is designed for user-facing web and mobile apps that help people compare prescription prices [APPROVE V-032]. For example:
+
+- a price-comparison view that lists nearby pharmacies from lowest to highest price;
+- a pharmacy finder that shows prices at the pharmacies a user already visits;
+- a drug detail page with each form and strength a drug comes in, from the drug dictionary.
+
+## How an integration works
+
+Your server holds your API credentials. It requests an access token, then sends pricing requests on behalf of your app.
+
+<Frame caption="Pricing a drug: your server gets a token only when it needs one, then requests prices.">
+
+![Sequence diagram: the end user searches in your app; your server requests an access token if it has none or it has expired, then calls the pricing endpoint and returns pharmacy prices to the app.](/assets/diagrams/consumer-api-sequence.svg)
+
+</Frame>
+
+<Frame caption="Your server holds the credentials and calls the Consumer API server to server.">
+
+![Architecture diagram: the end user's app talks to your front end, which talks to your server; your server calls the Consumer API's token endpoint and pricing endpoints over HTTPS.](/assets/diagrams/integration-architecture.svg)
+
+</Frame>
+
+## The pricing endpoints
+
+Every pricing endpoint combines one way to identify the drug with one way to find pharmacies:
+
+| Identify the drug by | Near a ZIP code | Near coordinates | At specific pharmacies |
+|---|---|---|---|
+| NDC (recommended) | `byndc/byzipcode` | `byndc/bylatlong` | `byndc/bypharmacies` |
+| Drug form strength ID | `bydfsid/byzipcode` | `bydfsid/bylatlong` | `bydfsid/bypharmacies` |
+| Drug name ID | `bydrugnameid/byzipcode` | `bydrugnameid/bylatlong` | `bydrugnameid/bypharmacies` |
+
+Each path starts with `/drugprice/`. [Pricing a Drug](/consumer-api/pricing-a-drug) explains how to choose one.
+
+## Environments
+
+You build and test against a non-production environment that returns synthetic pricing, then move to production when your integration is ready [APPROVE V-015]. See [Getting Access](/get-started/getting-access).
+
+## Security and compliance
+
+Buzz Health is HITRUST i1 certified and has completed a SOC 2 Type II examination [APPROVE V-022]. The API uses bearer tokens over HTTPS, and it's built for server-to-server calls so your credentials never reach a browser.
+
+## Next steps
+
+- [Quickstart](/get-started/quickstart): make your first request.
+- [Authentication](/consumer-api/authentication): how tokens work.

@@ -1,0 +1,26 @@
+---
+title: "Glossary"
+description: "Terms used across the Consumer API documentation."
+sidebarTitle: "Glossary"
+icon: "book"
+---
+
+Terms used throughout the Consumer API documentation.
+
+| Term | Meaning |
+|---|---|
+| Access token | A bearer token from `/oauth2/token`, sent with every pricing request. Valid for 24 hours. |
+| Days supply | The number of days a quantity of medication should last (`daysSupply`) |
+| Drug dictionary | Optional response data (`drugDictionary`) listing a drug's forms, strengths, and common quantities |
+| Drug form strength ID | A Consumer API identifier for one form and strength of a drug (`drugFormStrengthID`), returned in pricing responses |
+| Drug name ID | A Consumer API identifier for a drug name (`drugNameID`) |
+| Envelope | The fields shared by every response: `statuscode`, `status`, `messageCode`, `data`, and others |
+| Estimated retail price | An estimate of the price without a discount (`estimatedRetailPrice`), or `"NA"` |
+| Group number | A program identifier your account team may assign (`groupNumber`) |
+| Message code | Your own identifier for a request (`messageCode`), echoed in the response |
+| NCPDP ID | A pharmacy identifier assigned by the National Council for Prescription Drug Programs |
+| NDC | National Drug Code: the 11-digit identifier of a drug product |
+| NPI | National Provider Identifier: the 10-digit identifier of a pharmacy or other provider |
+| Predictive NDCs | An option that lets a pharmacy be priced for an equivalent NDC (`predictiveNDCs`) |
+| Quantity type | How a quantity is expressed: `CONSUMER` (default) or `METRIC` |
+| Radius | The search distance in miles, from 5 to 100 |

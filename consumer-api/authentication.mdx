@@ -1,0 +1,83 @@
+---
+title: "Authentication"
+description: "Get an access token and send it with every Consumer API request."
+sidebarTitle: "Authentication"
+icon: "key"
+---
+
+The Consumer API uses bearer tokens. Your server exchanges its credentials for an access token, then sends that token with every pricing request.
+
+## Request a token
+
+Send a `POST` request to `/oauth2/token`:
+
+| Field | Type | Description |
+|---|---|---|
+| `messageCode` | string | Your identifier for the request, echoed in the response. Up to 30 characters [VERIFY V-028]. |
+| `clientID` | string | Your client ID |
+| `userId` | string | Your user ID |
+| `userSecret` | string | Your user secret |
+
+```bash title="cURL"
+curl -X POST "$BUZZ_API_BASE_URL/oauth2/token" \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: example-app/1.0" \
+  -d '{"messageCode":"auth-0001","clientID":"YOUR_CLIENT_ID","userId":"YOUR_USER_ID","userSecret":"YOUR_USER_SECRET"}'
+```
+
+A successful response returns the token under `data.token`:
+
+```json title="Response"
+{
+  "statuscode": "200 OK",
+  "status": "SUCCESS",
+  "messageCode": "auth-0001",
+  "data": {
+    "token": {
+      "access_token": "<access_token>",
+      "expires_in": 86400,
+      "token_type": "Bearer"
+    }
+  }
+}
+```
+
+## Use the token
+
+Send the token in the `Authorization` header of every pricing request:
+
+```http title="Headers"
+Authorization: Bearer <access_token>
+Content-Type: application/json
+User-Agent: example-app/1.0
+```
+
+Send a non-empty `User-Agent` header with every request [VERIFY V-012].
+
+## Token lifetime
+
+A token is valid for `expires_in` seconds: 86400, or 24 hours.
+
+- Cache the token on your server, and reuse it for every request until shortly before it expires.
+- If a request returns `401`, request a new token and retry once.
+- Don't request a new token for every pricing call.
+
+## Keep credentials on your server
+
+<Warning>
+
+**Never call the token endpoint from a browser or mobile app.** Anyone who can read your user secret can call the API as you. Request tokens and prices from your server, then pass the results to your app.
+
+</Warning>
+
+The Consumer API is built for server-to-server calls, and browser requests are generally blocked by cross-origin (CORS) rules.
+
+## Errors
+
+| Status | Meaning | What to do |
+|---|---|---|
+| `400` | A required field is missing or invalid | Check the request body |
+| `401` | The credentials or token are invalid, or the token has expired | Check your credentials, or request a new token |
+| `403` | Your client isn't allowed to call this endpoint | Ask your account team to enable it |
+
+See [Errors](/consumer-api/errors) for the response format.

@@ -1,0 +1,48 @@
+---
+title: "Getting Access"
+description: "How partners get Consumer API credentials and move from testing to production."
+sidebarTitle: "Getting access"
+icon: "user-check"
+---
+
+Access to the Consumer API starts with your Buzz Health account team. This page describes the general path from first credentials to production [APPROVE V-015].
+
+<Steps>
+
+<Step title="Talk to your account team">
+
+Your account team sets up your client and confirms which pricing endpoints your integration needs. To get started, contact Buzz Health [TBD V-017].
+
+</Step>
+
+<Step title="Receive test credentials">
+
+You receive a client ID, a user ID, and a user secret for a non-production environment, together with its base URL. If your program uses a group number, you receive that too. Test environments return synthetic pricing, not real prices.
+
+</Step>
+
+<Step title="Build and test your integration">
+
+Follow the [Quickstart](/get-started/quickstart), then build out the requests your app needs. Endpoints are enabled for your client individually. If an endpoint returns `403`, ask your account team to enable it.
+
+</Step>
+
+<Step title="Go live">
+
+When testing is complete, you receive production credentials and a production base URL. Switch your configuration, and your integration is live.
+
+</Step>
+
+</Steps>
+
+## Keep credentials safe
+
+- Store your user secret on your server, in a secrets manager or environment variable. Never ship it in a web page or mobile app.
+- Use separate credentials for each environment.
+- If you think a secret has been exposed, contact your account team to replace it [TBD V-017].
+
+<Tip>
+
+**Tell us your expected volume.** Share your anticipated request throughput with your account team before you go live.
+
+</Tip>
